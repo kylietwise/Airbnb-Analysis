@@ -1,0 +1,550 @@
+---
+fontsize: 12pt
+geometry: margin=1in
+linkcolor: black
+urlcolor: black
+output: pdf_document
+header-includes:
+- \usepackage{setspace}
+- \onehalfspacing
+---
+
+```{r setupC, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, highlight=FALSE, message=FALSE)
+```
+
+```{r, echo=FALSE}
+library(knitr)
+library(tidyverse)
+library(lubridate)
+library(janitor)
+library(corrr)
+library(tidymodels)
+library(GGally)
+library(modelr)
+library(car)
+library(tidytext)
+library(SnowballC)
+library(gridExtra)
+library(grid)
+library(yardstick)
+library(randomForest)
+rmse <- yardstick::rmse
+
+setwd("/Users/dazzellebagtas/Documents/STAT4220")
+listings.2020 <- read.csv("listings-2020.csv")
+listings.2021 <- read.csv("listings.csv")
+calendar.2020 <- read.csv("calendar-2020.csv")
+calendar.2021 <- read.csv("calendar.csv")
+
+##load in data for bag of words 
+data2020 <- read.csv("listings-2020.csv")
+data2021 <- read.csv("listings.csv")
+
+listings.2020.cleansed <- listings.2020 %>%
+  select(id, name, host_id, host_since, host_location, host_is_superhost, 
+         host_total_listings_count, host_verifications, host_has_profile_pic, 
+         neighbourhood_cleansed, neighbourhood_group_cleansed, property_type, 
+         room_type, accommodates, bedrooms, beds, price, minimum_nights, 
+         maximum_nights)
+
+listings.2020.cleansed <- listings.2020.cleansed %>%
+  mutate(host_is_superhost=host_is_superhost == "t") %>%
+  mutate(host_has_profile_pic=host_has_profile_pic == "t")
+
+listings.2020.cleansed <- listings.2020.cleansed %>% 
+  mutate(price=gsub("\\$", "", price)) %>%
+  mutate(price=as.numeric(gsub(",", "", price)))
+
+listings.2020.cleansed$host_verifications <- sapply(listings.2020.cleansed$host_verifications, function(x) {length(unlist(strsplit(x, ", ")))})
+
+calendar.2020.cleansed <- calendar.2020 %>%
+  mutate(price=gsub("\\$", "", price), 
+         adjusted_price=gsub("\\$", "", adjusted_price)) %>%
+  mutate(price=as.numeric(gsub(",", "", price)), 
+         adjusted_price=as.numeric(gsub(",", "", adjusted_price))) %>%
+  mutate(available=available == "t")%>%
+  rename(id=listing_id)
+
+booked<-calendar.2020.cleansed[calendar.2020.cleansed$available==FALSE,]
+
+tfcounts<-booked%>%
+  group_by(id)%>%
+  count()
+
+fulldata <- merge(listings.2020.cleansed, tfcounts, by="id")%>%
+  rename(days_reserved=n)%>%
+  drop_na()
+
+listings.2020.cleansed <- listings.2020.cleansed %>%
+  mutate(year=2020)
+listings.2021.cleansed <- listings.2021.cleansed %>%
+  mutate(year=2021)
+
+listings.cleansed <- rbind(listings.2020.cleansed, listings.2021.cleansed)
+
+
+setwd("/Users/dazzellebagtas/Documents/STAT4220")
+listings.20203 <- read.csv("listings-2020.csv")
+listings.20213 <- read.csv("listings.csv")
+calendar.20203 <- read.csv("calendar-2020.csv")
+calendar.20213 <- read.csv("calendar.csv")
+
+listings.2020.cleansed3 <- listings.20203 %>%
+  select(id, name, host_id, host_since, host_location, host_is_superhost, 
+         host_total_listings_count, host_response_rate, host_verifications, 
+         host_has_profile_pic, neighbourhood_cleansed, 
+         neighbourhood_group_cleansed, property_type, room_type, accommodates, 
+         bedrooms, beds, price, minimum_nights, maximum_nights)
+
+listings.2021.cleansed3 <- listings.20213 %>%
+  select(id, name, host_id, host_since, host_location, host_is_superhost, 
+         host_total_listings_count, host_response_rate, host_verifications, 
+         host_has_profile_pic, neighbourhood_cleansed, 
+         neighbourhood_group_cleansed, property_type, room_type, accommodates, 
+         bedrooms, beds, price, minimum_nights, maximum_nights)
+
+listings.2020.cleansed3 <- listings.2020.cleansed3 %>%
+  mutate(year=2020)
+listings.2021.cleansed3 <- listings.2021.cleansed3 %>%
+  mutate(year=2021)
+
+listings.cleansed3 <- rbind(listings.2020.cleansed3, listings.2021.cleansed3)
+
+listings.cleansed3 <- listings.cleansed3 %>%
+  mutate(host_is_superhost=host_is_superhost == "t") %>%
+  mutate(host_has_profile_pic=host_has_profile_pic == "t")
+
+listings.cleansed3 <- listings.cleansed3 %>%
+  mutate(price=gsub("\\$", "", price)) %>%
+  mutate(price=as.numeric(gsub(",", "", price)))
+
+listings.cleansed3$host_verifications <- 
+  sapply(listings.cleansed3$host_verifications, 
+         function(x) {length(unlist(strsplit(x, ", ")))})
+
+listings.cleansed3 <- listings.cleansed3 %>%
+  rename(neighbourhood=neighbourhood_cleansed, 
+         neighbourhood_group=neighbourhood_group_cleansed)
+
+listings3 <- listings.cleansed3 %>%
+  mutate(host_response_rate=as.numeric(gsub("%", "", host_response_rate)))
+
+calendar.20203 <- calendar.20203 %>%
+  mutate(price=gsub("\\$", "", price), 
+         adjusted_price=gsub("\\$", "", adjusted_price)) %>%
+  mutate(price=as.numeric(gsub(",", "", price)), 
+         adjusted_price=as.numeric(gsub(",", "", adjusted_price))) %>%
+  mutate(available=available == "t")
+
+calendar.20213 <- calendar.20213 %>%
+  mutate(price=gsub("\\$", "", price), 
+         adjusted_price=gsub("\\$", "", adjusted_price)) %>%
+  mutate(price=as.numeric(gsub(",", "", price)), 
+         adjusted_price=as.numeric(gsub(",", "", adjusted_price))) %>%
+  mutate(available=available == "t")
+```
+
+# Appendix C: Analytics details {-}
+
+## Descriptive analytics {-}
+
+### R
+
+I. Difference in Bookings Graph
+
+First we convert the data string to a date format in order to extract the month for each booking. We also subset the data to be only the first 3 months out of each year.
+```{r}
+bookings.2020 <- calendar.20203 %>% 
+  filter(available==F) %>%
+  mutate(month=format(as.Date(date, "%Y-%m-%d"), "%m")) %>% 
+  filter(as.numeric(month) < 4) %>% 
+  group_by(month) %>%
+  summarise(n())
+
+bookings.2020 <- bookings.2020 %>%
+  mutate(year=2020)
+
+bookings.2021 <- calendar.20213 %>% 
+  filter(available==F) %>%
+  mutate(month=format(as.Date(date, "%Y-%m-%d"), "%m")) %>% 
+  filter(as.numeric(month) < 4) %>%
+  group_by(month) %>%
+  summarise(n())
+
+bookings.2021 <- bookings.2021 %>%
+  mutate(year=2021)
+```
+
+We then combined the two years of bookings data and renamed the columns. Using this combined dataset, we created a barplot with the month on the x axis and the number of bookings on the y axis and the color of the bar plot is based on the year. We also changed the labels to be the name of the month instead of the number.
+```{r}
+
+bookings <- rbind(bookings.2020, bookings.2021)
+colnames(bookings) <- c("month", "bookings", "year")
+bookings.diff <- bookings[bookings$year==2020,c("bookings")] - 
+  bookings[bookings$year==2021, c("bookings")]
+bookings.diff <- cbind(bookings.diff, c(1, 2, 3))
+colnames(bookings.diff) <- c("bookings", "month")
+
+ggplot(bookings.diff, aes(x=month, y=bookings)) + 
+  geom_bar(stat = "identity", fill="white", color="black") +
+  labs(x="Month", y="Difference in Bookings", title="Difference in bookings between 2020 and 2021") + 
+  theme(plot.title = element_text(hjust = 0.5)) +
+  geom_text(aes(label=bookings), vjust=1.25) + 
+  scale_x_continuous(labels=c("January", "February", "March"), 
+                     breaks = c(1, 2, 3))
+
+
+```
+
+II. Bookings Trend in 2020 Graph
+
+First, we converted the data string to a date format in order to extract the month for each booking in 2020. 
+```{r}
+bookings.full.2020 <- calendar.20203 %>% 
+  filter(available==F) %>%
+  mutate(month=format(as.Date(date, "%Y-%m-%d"), "%m")) %>% 
+  group_by(month) %>%
+  arrange(as.numeric(month)) %>%
+  summarise(n())
+
+colnames(bookings.full.2020) <- c("month", "bookings") 
+```
+
+We then created another barplot with month on the x axis and bookings on the y axis for each month in 2020. We also changed the labels and text on the plot, so that the names of each month would be displayed instead of the numeric month.
+```{r}
+ggplot(bookings.full.2020, aes(x=month, y=bookings)) + 
+  geom_bar(stat = "identity") + 
+  labs(title="Bookings by Month for 2020", x="Month", y="Bookings") + 
+  theme(plot.title = element_text(hjust = 0.5)) + 
+  scale_x_discrete(labels=c("January", "February", "March", "April", "May", 
+                            "June", "July", "August", "September", "October", 
+                            "November", "December")) + 
+  theme(axis.text.x=element_text(angle=45, vjust = 1, hjust = 1, 
+                                 face="bold", size=12))
+```
+
+
+III. Most Used Adjectives in Descriptions Graph
+We first read in the data that took the summaries from the description category in each data set, and then took the count of how frequently each word was mentioned.
+```{r}
+summary_word_count20 <- read.csv("summary_word_count.csv")
+summary_word_count21 <- read.csv("words.csv")
+```
+
+We then filtered the data so that we were only looking at longer words, to exclude stop words such as and, the, that, etc. Words that don't actually provide any context
+```{r}
+summary20new <- summary_word_count20[nchar(summary_word_count20$X) > 7 ,]
+summary21new <- summary_word_count21[nchar(summary_word_count21$X) > 7 ,]
+```
+
+Next, we went through and picked the adjectives then plotted them as a bar chart.
+```{r}
+p<-ggplot(data=summary21new[c(14, 7, 12,13,4),], aes(x=X, y=X0)) + 
+  geom_bar(stat ="identity") + xlab("Top 5 Adjectives 2021") + 
+  ylab("Word Count")
+
+d <- ggplot(data=summary20new[c(18,4,13,2,12),], aes(x=X, y=X0)) + 
+  geom_bar(stat ="identity") + xlab("Top 5 Adjectives 2020") +
+  ylab("Word Count")
+```
+
+Lastly, we put the two graphs together. 
+```{r}
+grid.arrange(d, p, nrow = 2)
+```
+
+
+III. Boxplot of prices by neighborhood. 
+
+We created a boxplot of price distributions grouped by neighborhood using the listings.2020.cleansed data  with "Price" on the x-axis and "Neighborhood" on the y-axis.
+```{r warning=FALSE}
+library(wesanderson)
+ggplot(listings3[listings3$year==2020,], 
+       aes(x=price,y=neighbourhood_group, 
+       fill=neighbourhood_group))+
+  geom_boxplot()+
+  coord_cartesian(xlim = c(0, 2100)) + 
+  ggtitle("Boxplots of Listing Prices by Neighborhood in 2020")+
+  theme(plot.title = element_text(hjust = 0.5))+
+  xlab("Price")+ylab("Neighborhood") + 
+  scale_fill_manual(values=wes_palette(n=5, name="Cavalcanti1")) +
+  theme(legend.position="none")
+```
+
+
+## Predictive analytics {-}
+
+I. Random Forest Analysis 
+
+```{r, echo=FALSE}
+fulldata <- merge(listings.2020.cleansed, tfcounts, by="id")%>%
+  rename(days_reserved=n)%>%
+  drop_na()
+
+set.seed(4224)
+
+##create response variable 
+fulldata <- fulldata%>%
+  mutate(value = if_else(days_reserved/365 >= 0.75, "high",
+                         if_else(days_reserved/365 >=0.50, "moderate", "low")))%>%
+  mutate(value = factor(value, levels = c("high","moderate","low")))%>%
+   drop_na()
+
+```
+
+First we subsetted the data to remove any listing identification columns and then split up the data into training, validation, and testing sets. 
+```{r}
+ 
+fulldata<-fulldata%>%
+  select(host_is_superhost, host_total_listings_count, 
+         host_verifications, host_has_profile_pic, 
+         room_type, accommodates, bedrooms, beds, price, 
+         minimum_nights, maximum_nights, value)
+
+listings.3div <- fulldata %>%
+  initial_split(prop = 0.6)
+
+listings.3div2 <- listings.3div %>%
+  testing() %>%
+  initial_split(prop = 0.5)
+
+listings.train <- training(listings.3div)
+listings.validate <- training(listings.3div2)
+listings.test <- testing(listings.3div2)
+```
+
+Next, we created the initial random forest using all variables with the training set. 
+```{r}
+RF.mod1 <- randomForest(value~., data=listings.train,mtry = 2, importance = TRUE)
+```
+
+The second random forest model was created by looking at the important variables from model 1, and removing those that did not result in large decreases in accuracy if removed.
+```{r}
+RF.mod2 <- randomForest(value~. - host_has_profile_pic - beds, data=listings.train,mtry = 2, importance = TRUE)
+```
+
+The third random forest model was created by removing an additional variable that did not result in large decreases in accuracy if removed .
+```{r}
+RF.mod3 <- randomForest(value~. - host_has_profile_pic -bedrooms - beds, data=listings.train,mtry = 2, importance = TRUE)
+```
+
+We then added the validation data to all the models and added predicted values to the models and compared their confusion matrices and accuracy rates.
+```{r}
+RF.add1 <- listings.validate%>%
+  add_predictions(RF.mod1) %>%
+  rename(pred_value = pred) %>%
+  mutate(method = "RF.mod1")
+
+RF.add2 <- listings.validate %>%
+  add_predictions(RF.mod2) %>%
+  rename(pred_value = pred) %>%
+  mutate(method = "RF.mod2")
+
+RF.add3 <- listings.validate %>%
+  add_predictions(RF.mod3) %>%
+  rename(pred_value = pred) %>%
+  mutate(method = "RF.mod3")
+
+RF.add <- RF.add1 %>%
+  bind_rows(RF.add2) %>%
+  bind_rows(RF.add3) %>%
+  group_by(method)
+
+
+RF.add1 %>%
+  conf_mat(truth = value, estimate = pred_value)
+
+RF.add2 %>%
+  conf_mat(truth = value, estimate = pred_value)
+
+RF.add3 %>%
+  conf_mat(truth = value, estimate = pred_value)
+
+RF.add %>%
+  metrics(truth = value, estimate = pred_value) %>%
+  filter(.metric == "accuracy")
+```
+
+We then added the testing data to all the models and added predicted values to the models and compared their confusion matrices and accuracy rates to confirm how well our models predict reseration rates.
+```{r}
+RF.add1test <- listings.test %>%
+  add_predictions(RF.mod1) %>%
+  rename(pred_value = pred) %>%
+  mutate(method = "RF.mod1")
+
+RF.add2test <- listings.test %>%
+  add_predictions(RF.mod2) %>%
+  rename(pred_value = pred) %>%
+  mutate(method = "RF.mod2")
+
+RF.add3test <- listings.test %>%
+  add_predictions(RF.mod3) %>%
+  rename(pred_value = pred) %>%
+  mutate(method = "RF.mod3")
+
+RF.addtest <- RF.add1test %>%
+  bind_rows(RF.add2test) %>%
+  bind_rows(RF.add3test) %>%
+  group_by(method)
+
+RF.add1test %>%
+  conf_mat(truth = value, estimate = pred_value)
+
+RF.add2test %>%
+  conf_mat(truth = value, estimate = pred_value)
+
+RF.add3test %>%
+  conf_mat(truth = value, estimate = pred_value)
+
+RF.addtest %>%
+  metrics(truth = value, estimate = pred_value) %>%
+  filter(.metric == "accuracy")
+```
+
+II. Text Analysis 
+
+First, we tokenize the name columns so each word of the names is on a new line for 2020 and remove punctuation and then remove stop words for each year.
+```{r}
+listings.names2020 <- data2020 %>%
+  unnest_tokens(word, description) %>%
+  mutate(word = str_extract(word, "[0-9a-z']+"))
+
+listings.names2021 <- data2021 %>%
+  unnest_tokens(word, description) %>%
+  mutate(word = str_extract(word, "[0-9a-z']+"))
+
+check2020 <- listings.names2020$word
+check2021 <- listings.names2021$word
+
+# remove stop words 2020 
+listings.names2020 <- listings.names2020 %>%
+  anti_join(stop_words, by = "word")  %>%
+  mutate(word.stem = wordStem(word)) 
+
+# remove stop words 2021
+listings.names2021 <- listings.names2021 %>%
+  anti_join(stop_words, by = "word")  %>%
+  mutate(word.stem = wordStem(word)) 
+
+```
+
+Then, we determined the count of words across all descriptions.
+```{r}
+word.count2020 <- listings.names2020 %>%
+  group_by(word) %>%
+  summarize(word.count = n()) %>%
+  arrange(desc(word.count))
+
+word.count2021 <- listings.names2021 %>%
+  group_by(word) %>%
+  summarize(word.count = n()) %>%
+  arrange(desc(word.count))
+``` 
+
+Then, we added in additional stop words specific to this analysis. 
+```{r}
+new_stop_words <- tibble(word = c(NA, "bedroom","private","apartment","cozy","br", "bed", 
+                                  "living", "1","2","3","apt","studio","located"))
+```
+
+Then we removed new stop words.  
+```{r}
+listings.names2020 <- listings.names2020 %>%
+  anti_join(new_stop_words, by = "word")
+
+listings.names2021 <- listings.names2021 %>%
+  anti_join(new_stop_words, by = "word")
+```
+
+Then we performed a new word count with all of the new stop words gone. 
+```{r}
+new.word.count2020 <- listings.names2020 %>%
+  group_by(word) %>%
+  summarize(word.count = n()) %>%
+  arrange(desc(word.count))
+
+new.word.count2021 <- listings.names2021 %>%
+  group_by(word) %>%
+  summarize(word.count = n()) %>%
+  arrange(desc(word.count))
+```
+
+We then took the top 10 words used in descriptions from 2020 and 2021 and combined them into one dataframe.
+```{r}
+# display of top 10 words in name 2020
+display2020 <- new.word.count2020 %>%
+  top_n(10, word.count)
+
+# display of top 10 words in name 2021
+display2021 <- new.word.count2021 %>%
+  top_n(10, word.count) 
+
+colnames(display2020) <- c("2020 Words","Frequency")
+colnames(display2021) <- c("2021 Words","Frequency")
+
+cbind(display2020, display2021) %>% kable(caption = "Top Description Words 2020 & 2021") 
+```
+
+We then extracted bigrams from the descriptions.
+```{r}
+bigrams2020 <- data2020[,c(1,8)] %>%
+  unnest_tokens(bigram, description, token = "ngrams", n = 2) %>%
+  mutate(bigram = str_extract(bigram, "[0-9a-z'\\s]+")) %>%
+  drop_na()
+
+bigrams2021 <- data2021[,c(1,6)] %>%
+  unnest_tokens(bigram, description, token = "ngrams", n = 2) %>%
+  mutate(bigram = str_extract(bigram, "[0-9a-z'\\s]+")) %>%
+  drop_na()
+```
+
+Next, we separated the words and removed stop words and did a count of the bigrams.
+```{r}
+# separate the words and remove stop words 
+bigrams2020 <- bigrams2020 %>%
+  separate(bigram, c("word1", "word2"), sep = " ") %>%
+  filter(!word1 %in% stop_words$word) %>%
+  filter(!word2 %in% stop_words$word) %>%
+  drop_na() %>%
+  unite(bigram, word1, word2, sep = " ") 
+
+bigrams2021 <- bigrams2021 %>%
+  separate(bigram, c("word1", "word2"), sep = " ") %>%
+  filter(!word1 %in% stop_words$word) %>%
+  filter(!word2 %in% stop_words$word) %>%
+  drop_na() %>%
+  unite(bigram, word1, word2, sep = " ") 
+
+# do a count of bigrams
+bigrams2020 <- bigrams2020 %>%
+  group_by(bigram) %>%
+  summarize(count = n()) %>%
+  arrange(desc(count))
+
+bigrams2021 <- bigrams2021 %>%
+  group_by(bigram) %>%
+  summarize(count = n()) %>%
+  arrange(desc(count))
+```
+
+Lastly, we displayed the results in a table.
+```{r}
+# display top 10 bigrams
+bigrams2020 %>%
+  top_n(11, count) %>%
+  mutate(bigram = reorder(bigram, count))
+
+bigrams2021 %>%
+  top_n(12, count) %>%
+  mutate(bigram = reorder(bigram, count)) 
+
+bigrams2020 <- bigrams2020[c(2,3,4,5,6,7,8,9,10,11),]
+bigrams2021 <- bigrams2021[c(3:12),]
+# rename columns
+colnames(bigrams2020) <- c("2020 Bigrams","Frequency")
+colnames(bigrams2021) <- c("2021 Bigrams","Frequency")
+#display in chart
+cbind(bigrams2020, bigrams2021) %>% kable(caption = "Top Description Words 2020 & 2021") 
+```
+

@@ -1,0 +1,171 @@
+---
+fontsize: 12pt
+geometry: margin=1in
+linkcolor: black
+urlcolor: black
+output: pdf_document
+header-includes:
+- \usepackage{setspace}
+- \onehalfspacing
+---
+
+```{r setupB, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, highlight=FALSE, message=FALSE)
+```
+
+```{r, echo=FALSE}
+library(tidyverse)
+library(lubridate)
+library(janitor)
+library(knitr)
+```
+
+# Appendix B: Data preparation details {-}
+
+## R {-}
+```{r, echo=FALSE, include=T}
+listings.2020 <- read.csv("listings-2020.csv")
+listings.2021 <- read.csv("listings.csv")
+calendar.2020 <- read.csv("calendar-2020.csv")
+calendar.2021 <- read.csv("calendar.csv")
+```
+
+We only want to work with a select number of columns, so we selected the relavent columns and ignored the unwanted columns.
+```{r}
+listings.2020.cleansed <- listings.2020 %>%
+  select(id, name, host_id, host_since, host_location, host_is_superhost, 
+         host_total_listings_count, host_response_rate, host_verifications, 
+         host_has_profile_pic, neighbourhood_cleansed, 
+         neighbourhood_group_cleansed, property_type, room_type, accommodates, 
+         bedrooms, beds, price, minimum_nights, maximum_nights)
+
+listings.2021.cleansed <- listings.2021 %>%
+  select(id, name, host_id, host_since, host_location, host_is_superhost, 
+         host_total_listings_count, host_response_rate, host_verifications, 
+         host_has_profile_pic, neighbourhood_cleansed, 
+         neighbourhood_group_cleansed, property_type, room_type, accommodates, 
+         bedrooms, beds, price, minimum_nights, maximum_nights)
+
+```
+
+
+Then we added a new column named "year", so the 2020 data could be combined with the 2021 data using the rbind function.
+```{r}
+listings.2020.cleansed <- listings.2020.cleansed %>%
+  mutate(year=2020)
+listings.2021.cleansed <- listings.2021.cleansed %>%
+  mutate(year=2021)
+
+listings.cleansed <- rbind(listings.2020.cleansed, listings.2021.cleansed)
+```
+
+We then converted Host_is_superhost and host_has_profile_pic from character vectors to logical vectors using the mutate function.
+```{r}
+listings.cleansed <- listings.cleansed %>%
+  mutate(host_is_superhost=host_is_superhost == "t") %>%
+  mutate(host_has_profile_pic=host_has_profile_pic == "t")
+```
+
+The price variable in the listings dataset started as a character string with dollar symbols and commas for larger numbers. Using the mutate function, we converted the price variable to a numeric vector.
+
+```{r}
+listings.cleansed <- listings.cleansed %>%
+  mutate(price=gsub("\\$", "", price)) %>%
+  mutate(price=as.numeric(gsub(",", "", price)))
+```
+
+Using the sapply function with a custom function, we converted the host_verifications column to be the number of verifications instead of listing the verifications.
+```{r}
+listings.cleansed$host_verifications <- 
+  sapply(listings.cleansed$host_verifications, 
+         function(x) {length(unlist(strsplit(x, ", ")))})
+```
+
+Using the rename function, we renamed neighbourhood variables to remove "cleansed" at the end of the variable name.
+```{r}
+listings.cleansed <- listings.cleansed %>%
+  rename(neighbourhood=neighbourhood_cleansed, 
+         neighbourhood_group=neighbourhood_group_cleansed)
+```
+
+Then, we converted host_response_rate variable into a numeric vector using the gsub function to remove the % symbol and then mutate.
+```{r, warning=FALSE}
+listings.cleansed <- listings.cleansed %>%
+  mutate(host_response_rate=as.numeric(gsub("%", "", host_response_rate)))
+```
+
+The price variable in the calendar dataset started as a character string with dollar symbols and commas for larger numbers. We used the mutate function to convert the price variable to a numeric vector.
+```{r}
+calendar.2020.cleansed <- calendar.2020 %>%
+  mutate(price=gsub("\\$", "", price), 
+         adjusted_price=gsub("\\$", "", adjusted_price)) %>%
+  mutate(price=as.numeric(gsub(",", "", price)), 
+         adjusted_price=as.numeric(gsub(",", "", adjusted_price))) %>%
+  mutate(available=available == "t")
+
+calendar.2021.cleansed <- calendar.2021 %>%
+  mutate(price=gsub("\\$", "", price), 
+         adjusted_price=gsub("\\$", "", adjusted_price)) %>%
+  mutate(price=as.numeric(gsub(",", "", price)), 
+         adjusted_price=as.numeric(gsub(",", "", adjusted_price))) %>%
+  mutate(available=available == "t")
+```
+
+Lastly, we created a reservation rate variable by determining the proportion of days a listing was reserved from the calendar data set by grouping the data by Id and summing the days when it was not available and dividing that count by 365. We then created the thresholds for "high", "moderate", and "low" values and assigned them accordingly. 
+```{r}
+booked<-calendar.2020.cleansed[calendar.2020.cleansed$available==FALSE,]
+
+tfcounts<-booked%>%
+  group_by(id)%>%
+  count()
+
+fulldata <- merge(listings.2020.cleansed, tfcounts, by="id")%>%
+  rename(days_reserved=n)%>%
+  drop_na()
+
+fulldata <- fulldata%>%
+  mutate(value = if_else(days_reserved/365 >= 0.75, "high",
+                         if_else(days_reserved/365 >=0.50, "moderate", "low")))%>%
+  mutate(value = factor(value, levels = c("high","moderate","low")))%>%
+   drop_na()
+ 
+```
+
+## Excel {-} 
+The first step in preparing the data is removing columns that are not useful for answering the business problem using the “Hide” function.
+
+```{r, fig.cap = "Hiding Unwanted Columns", out.width = "6in", echo=FALSE}
+include_graphics("screenshots/Picture1.png")
+```
+
+It is then important to check that there are no duplicate values. In this dataset, each listing is given a unique ID number. We checked for duplicate values using the “Conditional Formatting” function to highlight any duplicate values in red. Next, in order to see the duplicate values, we use the “Sort & Filter” function. This should reveal a drop-down menu, where one will now select “Custom Sort”. The data will be sorted by the “id” column, sorted on “Cell Color” with the red cell color on top. However, in this instance, under the “Color/Icon” column, there is no option to sort for the red color which indicates that there are no duplicate values.
+
+```{r, fig.cap="Soft by ID on Cell Color", out.width = "6in", echo=FALSE}
+include_graphics("screenshots/Picture2.png")
+```
+
+Afterwards, certain columns were converted into appropriate number formats. For example, the “date” column was converted into Short Date, the “host_response_rate” column was converted into Percentage, and “price” was converted into Currency. Any columns containing numerical values were converted into Number. This was done by highlighting the specific columns one at a time, clicking the drop-down menu located to the left of “Conditional Formatting”, and choosing the appropriate number format. 
+
+```{r, fig.cap="Convert Date to Short Date Type", out.width = "6in", echo=FALSE}
+include_graphics("screenshots/Picture3.png")
+```
+We then inserted a new column titled “year” in each data set in order to be able to combine the data for both 2020 and 2021 into one data set while still maintaining the year in which the data was collected. We also added a new column titled “Host Verifications” which gives a count of the number of verifications that hosts required of their customers rather using the full list. This was done using the “Text to Columns” feature to separate the verifications list by commas. We then used the formula “COUNTA” to sum the number of verifications into a new column.  
+
+```{r, fig.cap="Separate Column with Text to Columns", out.width = "6in", echo=FALSE}
+include_graphics("screenshots/Picture6.png")
+```
+
+```{r, fig.cap = "Prepared Listings Data Split for Readability", out.width = "6in", echo=FALSE}
+include_graphics("screenshots/listings1.png")
+include_graphics("screenshots/listings2.png")
+```
+
+The “calendar-2020” dataset was already prepared well by Insideairbnb.com [@ref5]. In order to further prepare it, the “listing_id” column was converted to Number, the “price”  column was converted into Currency, and “minimum_nights” and “maximum_nights” were converted into Number format. This was done by highlighting the specific columns one at a time, clicking the drop-down menu located to the left of “Conditional Formatting”, and choosing the appropriate number format. 
+
+```{r, fig.cap="Convert Price to Currency Type", out.width = "6in", echo=FALSE}
+include_graphics("screenshots/Picture4.png")
+```
+
+```{r, fig.cap = "Prepared Calendar Data", out.width = "6in", echo=FALSE}
+include_graphics("screenshots/Picture5.png")
+```

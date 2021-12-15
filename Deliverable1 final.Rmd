@@ -1,0 +1,33 @@
+---
+fontsize: 12pt
+geometry: margin=1in
+linkcolor: black
+urlcolor: black
+output: pdf_document
+bibliography: references.bib 
+nocite: '@*'
+header-includes:
+- \usepackage{setspace}
+- \onehalfspacing
+---
+
+```{r setup1, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, highlight=FALSE, message=FALSE)
+```
+
+```{r}
+# Library statements
+```
+
+# Introduction
+To say the Coronavirus pandemic has altered the way the world works would be an understatement. Covid-19 has fundamentally changed the way many industries function, thrive, and survive. When the Coronavirus outbreak hit the United States, many businesses struggled as lockdowns and travel restrictions greatly diminished the number of consumers buying goods and services.  
+
+The lodging industry has been especially affected by the pandemic. For Airbnb specifically, about 64% of guests had canceled or planned to cancel their Airbnb reservations three months after the Coronavirus entered the United States [@ref1]. In response, Airbnb has implemented new policies and practices such as new cleaning protocols, limited guest capacities, and masking and social distancing guidelines [@ref2]. A question remains, however, if these new policies are enough to sustain the business after the losses it has experienced. According to an article published by McKinsey & Company, the accommodation and food industry, which includes the lodging industry, may not fully recover until 2025 [@ref3]. Assessing more specifically how the pandemic has affected the lodging industry and specific businesses within it will be important to show how well they have adjusted and allow business leaders to better understand what more must be done to sustain their businesses and gain insight on what the future of the lodging industry might look like.  
+
+## Business problem
+In order to examine an aspect of how the pandemic has affected the lodging industry, the following question will be explored: What are the attributes of listings that have closed or are not receiving reservations during the pandemic? Factors such as price and location that may possibly affect the likelihood of these listings not getting reserved or having to close altogether will be observed. By determining these specific factors, Airbnb can target problem areas and design solutions to combat them. This is important because when listings are not booked, revenue is lost. The problem will be examined within the context of New York City because it saw one of the highest totals of Covid-19 cases in the United States and, thus, will ensure that any effects found are likely attributable to the presence of Covid-19 [@ref4]. 
+
+## Intended audience
+The main entity that would benefit from the solution for the business problem is Airbnb itself. By determining certain attributes and factors that may be contributing to the low performance of certain listings, Airbnb may allocate more time and resources to help these areas and hosts. This could look like providing more resources to help hosts abide by safety protocols, guidance in attracting more guests, or cutting their operating costs in the meantime. Doing so may incur additional costs for Airbnb, but it also has the potential to increase Airbnb’s overall revenue and its recovery from the initial shock caused by the pandemic. Airbnb hosts will also benefit from this solution. Receiving help from Airbnb in maintaining and advertising their listings may help increase the number of reservations made and their personal revenue. 
+
+Additionally, the solution may help guide hosts’ decision on whether to continue business with Airbnb at all if they determine that they would not be able to make up for losses and continued operating costs even with Airbnb’s assistance. Furthermore, other businesses within the lodging industry could benefit from this analysis. For example, Tripping.com and Vrbo, which are lodging companies similar to Airbnb, may take note of what kinds of listings continue to struggle in booking guests and design their own solutions to help those hosts.

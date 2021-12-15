@@ -1,0 +1,206 @@
+---
+fontsize: 12pt
+geometry: margin=1in
+linkcolor: black
+urlcolor: black
+output: pdf_document
+bibliography: references.bib 
+nocite: '@*'
+header-includes:
+- \usepackage{setspace}
+- \onehalfspacing
+- \usepackage{float}
+---
+
+```{r setup3, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE, highlight=FALSE, message=FALSE, fig.align = "center", fig.pos = "H")
+
+library(knitr)
+library(tidyverse)
+library(viridis)
+library(tm)
+library(topicmodels)
+library(LDAvis)
+library(dplyr)
+library(stringi) 
+library(gridExtra)
+library(readxl)
+
+setwd("/Users/dazzellebagtas/Documents/STAT4220")
+listings.20203 <- read.csv("listings-2020.csv")
+listings.20213 <- read.csv("listings.csv")
+calendar.20203 <- read.csv("calendar-2020.csv")
+calendar.20213 <- read.csv("calendar.csv")
+
+listings.2020.cleansed3 <- listings.20203 %>%
+  select(id, name, host_id, host_since, host_location, host_is_superhost, 
+         host_total_listings_count, host_response_rate, host_verifications, 
+         host_has_profile_pic, neighbourhood_cleansed, 
+         neighbourhood_group_cleansed, property_type, room_type, accommodates, 
+         bedrooms, beds, price, minimum_nights, maximum_nights)
+
+listings.2021.cleansed3 <- listings.20213 %>%
+  select(id, name, host_id, host_since, host_location, host_is_superhost, 
+         host_total_listings_count, host_response_rate, host_verifications, 
+         host_has_profile_pic, neighbourhood_cleansed, 
+         neighbourhood_group_cleansed, property_type, room_type, accommodates, 
+         bedrooms, beds, price, minimum_nights, maximum_nights)
+
+listings.2020.cleansed3 <- listings.2020.cleansed3 %>%
+  mutate(year=2020)
+listings.2021.cleansed3 <- listings.2021.cleansed3 %>%
+  mutate(year=2021)
+
+listings.cleansed3 <- rbind(listings.2020.cleansed3, listings.2021.cleansed3)
+
+listings.cleansed3 <- listings.cleansed3 %>%
+  mutate(host_is_superhost=host_is_superhost == "t") %>%
+  mutate(host_has_profile_pic=host_has_profile_pic == "t")
+
+listings.cleansed3 <- listings.cleansed3 %>%
+  mutate(price=gsub("\\$", "", price)) %>%
+  mutate(price=as.numeric(gsub(",", "", price)))
+
+listings.cleansed3$host_verifications <- 
+  sapply(listings.cleansed3$host_verifications, 
+         function(x) {length(unlist(strsplit(x, ", ")))})
+
+listings.cleansed3 <- listings.cleansed3 %>%
+  rename(neighbourhood=neighbourhood_cleansed, 
+         neighbourhood_group=neighbourhood_group_cleansed)
+
+listings3 <- listings.cleansed3 %>%
+  mutate(host_response_rate=as.numeric(gsub("%", "", host_response_rate)))
+
+calendar.20203 <- calendar.20203 %>%
+  mutate(price=gsub("\\$", "", price), 
+         adjusted_price=gsub("\\$", "", adjusted_price)) %>%
+  mutate(price=as.numeric(gsub(",", "", price)), 
+         adjusted_price=as.numeric(gsub(",", "", adjusted_price))) %>%
+  mutate(available=available == "t")
+
+calendar.20213 <- calendar.20213 %>%
+  mutate(price=gsub("\\$", "", price), 
+         adjusted_price=gsub("\\$", "", adjusted_price)) %>%
+  mutate(price=as.numeric(gsub(",", "", price)), 
+         adjusted_price=as.numeric(gsub(",", "", adjusted_price))) %>%
+  mutate(available=available == "t")
+```
+
+
+
+# Descriptive analytics
+
+The following descriptive analytics visualizations provide insights that will be helpful in determining common characteristics among Airbnb listings in New York City that have closed or are not receiving reservations during the Covid-19 pandemic. Exploring this data will give us insights into patterns and trends within our data, which will inform how to best approach our business question through statistical analysis and assess how the pandemic has altered the Airbnb New York City landscape. In these visualizations, we will explore different metrics from listing price and listing price variation to booking counts and year over year trends.  
+
+The following graph shows the difference in the number of nights a listing was booked or reserved between 2020 and 2021 for the first three months of each year.
+```{r, echo=FALSE,fig.cap="Difference in Number of Bookings from Jan-March, 2020 vs. 2021"}
+bookings.2020 <- calendar.20203 %>% 
+  filter(available==F) %>%
+  mutate(month=format(as.Date(date, "%Y-%m-%d"), "%m")) %>% 
+  filter(as.numeric(month) < 4) %>% 
+  group_by(month) %>%
+  summarise(n())
+
+bookings.2020 <- bookings.2020 %>%
+  mutate(year=2020)
+
+bookings.2021 <- calendar.20213 %>% 
+  filter(available==F) %>%
+  mutate(month=format(as.Date(date, "%Y-%m-%d"), "%m")) %>% 
+  filter(as.numeric(month) < 4) %>%
+  group_by(month) %>%
+  summarise(n())
+
+bookings.2021 <- bookings.2021 %>%
+  mutate(year=2021)
+
+bookings <- rbind(bookings.2020, bookings.2021)
+colnames(bookings) <- c("month", "bookings", "year")
+bookings.diff <- bookings[bookings$year==2020,c("bookings")] - 
+  bookings[bookings$year==2021, c("bookings")]
+bookings.diff <- cbind(bookings.diff, c(1, 2, 3))
+colnames(bookings.diff) <- c("bookings", "month")
+
+ggplot(bookings.diff, aes(x=month, y=bookings)) + 
+  geom_bar(stat = "identity", fill="blue", color="black") +
+  labs(x="Month", y="Difference in Bookings", title="Difference in bookings between 2020 and 2021") + 
+  theme(plot.title = element_text(hjust = 0.5)) +
+  geom_text(aes(label=bookings), vjust=1.25) + 
+  scale_x_continuous(labels=c("January", "February", "March"), 
+                     breaks = c(1, 2, 3))
+```
+The graph reveals that the greatest difference in number of bookings is in the month of March. This means that March 2021 had 243,313 less bookings that March 2020.  
+
+
+The following plot shows the number of nights that a listing was booked for each month in 2020. 
+```{r, echo=FALSE, fig.cap="Bookings Per Month, 2020"}
+
+bookings.full.2020 <- calendar.20203 %>% 
+  filter(available==F) %>%
+  mutate(month=format(as.Date(date, "%Y-%m-%d"), "%m")) %>% 
+  group_by(month) %>%
+  arrange(as.numeric(month)) %>%
+  summarise(n())
+
+colnames(bookings.full.2020) <- c("month", "bookings") 
+
+ggplot(bookings.full.2020, aes(x=month, y=bookings)) + 
+  geom_bar(stat = "identity") + 
+  labs(title="Bookings by Month for 2020", x="Month", y="Bookings") + 
+  theme(plot.title = element_text(hjust = 0.5)) + 
+  scale_x_discrete(labels=c("January", "February", "March", "April", "May", 
+                            "June", "July", "August", "September", "October", 
+                            "November", "December")) + 
+  theme(axis.text.x=element_text(angle=45, vjust = 1, hjust = 1, 
+                                 face="bold", size=12))
+```
+The plot shows an increasing trend in the number of bookings for each month in the year 2020.  
+
+
+The following bar graphs show the top 5 most frequently mentioned adjectives used in the summaries for the 2020 and 2021 listings datasets with their appropriate counts of times mentioned.  
+```{r, echo=FALSE, fig.cap="Top 5 Used Words In Descriptions, 2020 vs. 2021"}
+summary_word_count20 <- read.csv("summary_word_count.csv")
+summary_word_count21 <- read.csv("words.csv")
+summary20new <- summary_word_count20[nchar(summary_word_count20$X) > 7 ,]
+summary21new <- summary_word_count21[nchar(summary_word_count21$X) > 7 ,]
+
+p<-ggplot(data=summary21new[c(14, 7, 12,13,4),], aes(x=X, y=X0)) + 
+  geom_bar(stat ="identity") + xlab("Top 5 Adjectives 2021") + 
+  ylab("Word Count")
+
+d <- ggplot(data=summary20new[c(18,4,13,2,12),], aes(x=X, y=X0)) + 
+  geom_bar(stat ="identity") + xlab("Top 5 Adjectives 2020") +
+  ylab("Word Count")
+
+grid.arrange(d, p, nrow = 2)
+```
+We can see similar trends for the most used adjectives in both 2020 and 2021, with top words in both being spacious, available, comfortable. In 2020, there were more mentions of beauty and renovation whereas in 2021 there were more mentions of being equipped with certain amenities or features and being furnished.  
+
+
+The following boxplots show the distribution of listing prices by neighborhood in 2020.  
+```{r,echo=FALSE,fig.cap="Boxplots of Listing Prices by Neighborhood, 2020"}
+library(wesanderson)
+ggplot(listings3[listings3$year==2020,], 
+       aes(x=price,y=neighbourhood_group, 
+       fill=neighbourhood_group))+
+  geom_boxplot()+
+  coord_cartesian(xlim = c(0, 2100)) + 
+  ggtitle("Boxplots of Listing Prices by Neighborhood in 2020")+
+  theme(plot.title = element_text(hjust = 0.5))+
+  xlab("Price")+ylab("Neighborhood") + 
+  scale_fill_manual(values=wes_palette(n=5, name="Cavalcanti1")) +
+  theme(legend.position="none")
+```
+The boxplots reveal that most listings fall somewhere within the $60 to $250 range but there are many outliers. Manhattan had the highest average listing price while Staten Island, Queens, and the Bronx are closely tied for having the lowest average listing price.  
+
+
+## Insight summary
+From the chart displaying difference in bookings between 2020 and 2021, it is revealed that the first three months of 2021 had fewer overall bookings for New York City Airbnb's than the first three months of 2020. This is reasonable as cases in the first few months of 2021 spiked in New York City, thus it is to be expected that less people felt comfortable renting in New York during this time.
+
+In the next visualization of the month over month for the entire year of 2020, the number of total bookings gradually increased. This is surprising because one would predict that as the pandemic progressed and worsened, the number of total bookings would decrease, however the trend displays the opposite. This implies that there may be factors concerning the listings that have encouraged customers to reserve Airbnbs. 
+
+As for pricing, from the boxplots, we see more clearly how the distribution and variation of Airbnb listing price differs for each neighborhood. Manhattan has the highest average listing prices while the lowest average prices are around the same range in the Bronx, Queens, and Staten Island. This understanding may be particularly interesting as we continue into our predictive analyses because we may want to split our data by neighborhood to see if some neighborhoods have different trends than others.
+
+Additionally, we investigated how the listing descriptions changed between 2020 and 2021.  It is revealed that in 2020, there were more mentions of beauty and renovation whereas in 2021 there were more mentions of being equipped with certain amenities or features and being furnished. This shift in wording may reflect a change in customers’ values concerning listings; therefore, it may be important to evaluate its relationship to the number of bookings each listing receives.  
+

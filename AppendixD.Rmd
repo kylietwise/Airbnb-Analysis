@@ -1,0 +1,420 @@
+---
+fontsize: 12pt
+geometry: margin=1in
+linkcolor: black
+urlcolor: black
+output: pdf_document
+header-includes:
+- \usepackage{setspace}
+- \onehalfspacing
+---
+
+```{r setupD, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, highlight=FALSE, message=FALSE)
+```
+
+```{r}
+```
+
+# Appendix D: Comment incorporation {-}
+
+## Deliverable 1 
+
+Comment 1: Try to be a bit more specific about your business problem. Airbnb is talked about very little, and it is unclear what aspect of the lodging market you are focusing on. 
+
+Answer 1: We changed our introduction paragraph to explain why we chose Airbnb (the largest short-term renter in NYC) and what variables in listings we are analyzing.  
+
+
+Comment 2: It could be good to include something more focused on looking at how they will recover rather than just how COVID has impacted them since you included how it could be until 2025.  
+
+Answer 2: In our final deliverable, we made recommendations as to what Airbnb could do to recover fast enough. These recommendations came from our predictive analysis and are focused on keep renter costs down in order to decrease the average price per night.  
+
+
+
+Comment 3: Make it clear whether you are interested in the number of listings or in the profitability of the companies.  
+
+Answer 3: In our business problem section, we changed our question to “What are the attributes of listings that have closed or are not receiving reservations during the pandemic?” We chose to focus on listings because profitability numbers for Airbnb were more difficult to find when filtering by city.  
+
+
+
+Comment 4: You should work as a group to dig deeper into a problem that, when solved, will provide significant returns to the intended audience. As stated, it is too broad to have these sorts of measured effects. Think about how you can benefit Airbnb, if they remain your intended audience, in a way that is more than looking at the historical data they have on hand. Perhaps analyzing different attributes of listing or hosts that closed or re-listed may be one path to go down. 
+
+Answer 4: Our initial dataset included over 120 variables. We narrowed it down to 21 that we thought would be most effective and influential for analyzing listing data. We focused on different attributes of listings and why one listing is booked more often than others.  
+
+
+
+Comment 5: With Airbnb comes an important audience that you did not go into too much detail about which are the active and potential Airbnb-ers. They could also benefit from analysis like yours to gain knowledge about predictive trends in the industry and could be good to include in a few sentences.  
+
+Answer 5: We decided not to use customers as our audience because we would have to use different data about customer demographics. Our dataset only included information about the listings and the Airbnb hosts themselves, so our audience will be Airbnb and hosts.  
+
+
+
+Comment 6: You can be more specific on the costs and benefits to Airbnb. Consider how this affects their resource allocation decisions, or, perhaps, consider how this could affect the decisions of individual Airbnb hosts. Also, I would recommend either more deeply evaluating how other lodging businesses will benefit or narrowing your scope to not include them. 
+
+Answer 6: We chose to just focus on Airbnb instead of other lodging businesses (like hotels) because Airbnb had the largest rental market share in NYC for short-term rentals. We also narrowed our main audience down to Airbnb and their hosts. In our final deliverable, we made some recommendations on how Airbnb could better allocate resources to their hosts in order to support them after the pandemic. These recommendations came from our text and predictive analysis.  
+
+
+
+Comment 7: As a reader, I would be asking about a specific metric of how badly Airbnb was hurt at this start of the pandemic. (i.e., how much business did they lose then). And then this could be compared to an analysis of more recent losses/gains. 
+
+Answer 7: Because we decided to focus on listings rather than profitability, there was not one singular metric that could measure how badly Airbnb was hurt. In the descriptive analytics section, we did include a bar plot showing the average price of rentals in various boroughs in New York City. We also looked at the number of listings booked and available before and after the pandemic and created charts for those.  
+
+
+
+Comment 8: If the point is to analyze how Airbnb is affected by COVID-19 then you will also need to collect data on the trend of cases in the city as well so that you can compare them rather than just looking at pre and post COVID. Also, if the data is not associated with Airbnb, it may be difficult to make a claim for Airbnb based on the analysis.  
+
+Answer 8: In the data collection section, we explained how our data is from a site called inairbnb.com, which aggregates information directly from Airbnb itself. While the site is not endorsed by Airbnb, it uses an API connected to Airbnb’s website and combines the data by city. We chose to not collect data on the trend of cases in the city and just included information from news articles about when lockdowns were lifted.  
+
+
+
+Comment 9: I understand what is needed and I think it is good that you include a discussion of the potential issue of data accuracy. I would ask if you were looking at month by month data or yearly data? If yearly, would you compare it to 2019? How would this work considering the pandemic has spanned multiple years and since we have only just started 2021? 
+
+Answer 9: We added in our data section that we were looking at both monthly and yearly data. Most of our plots compared data from the first 3 months of 2020 to the first 3 months of 2021. We thought this was the most accurate way to do this because these months represented the before and aftereffects of COVID in the city.  
+
+
+Comment 10: You've listed some of the variables that are available. What are the variables that you need? Are they the same? 
+
+Answer 10: In our required data section, we listed some of the data that we will use rather than random columns like we had before. We explained why we chose certain variables and why we removed others. These decisions are also included in our data section in deliverable 2.  
+
+
+
+Comment 11: A full blank line is needed between paragraphs. Each reference entry should have an author, even if it is the site that has posted the information. 
+
+Answer 11: We made all format and reference changes in our final deliverable.  
+
+
+
+Comment 12: Some of this information may be better suited to the intended audience section. Consider splitting into two paragraphs.  
+
+Answer 12: We rewrote our intended audience and business problem paragraph in order to make them less repetitive and more specific.  
+
+
+
+Comment 13: I think intended audience section was stated clearly and it provided a great explanation on who would actually benefit from this business solution. You definitely left the room on the particular audience, which I especially liked, just because you do not know the results yet, so I believe that that was a very clever idea. 
+
+Answer 13: We ended up focusing on Airbnb and Airbnb hosts as our intended audiences because our information and results best fit these groups.  
+
+
+
+Comment 14: Required Data section was truly insightful, and I understood what type of data you will be looking into. It is great that you already found the dataset, so you could be more precise in this section. I honestly do not see a place for improvement here, just because I believe the information given is covering everything we needed to know at this stage of the project. 
+
+Answer 14: In our final deliverable, we narrow down to what 21 variables we are focusing on rather than including all 120. 
+
+
+## Deliverable 2
+
+Comment 1: I understand the description provided and it is complete in describing the columns. Having the column titles and description as a list or table so it will be easy for anyone to go back and quickly check the descriptions. It would also be a little clearer that there were 2 datasets if you showed the listing data right after its description rather than both of them back-to-back. Other than that good info in this section. There should be a way to get rid of that error message at the top of your paper. I don't think a full list of the column names is necessary when you are showing your data. I am not sure I would agree the ID column is the most important column, and you probably don't need to conjecture on the importance of columns here anyway. In general, this section's text can be made much more concise / less wordy. 
+
+Answer 1: We made this section much more concise and removed the list of column names to make it much less wordy. We also hid the error message that was appearing at the top of the page. We also removed the conjecture about the importance of the columns. 
+
+
+
+Comment 2 Summary of a few comments: I understand the description provided and it is very thorough with how it explains every column. It also shows example tables of the dataset, for a visual element to help the reader understand. One question I have afterwards is whether or not the ID is the most important variable as you say, because although it connects the sets and identifies listings, this seems like a more logistical variable and less of one that gives critical information that you will analyze. But I understand that without this variable, you can't really analyze your data so it does make sense of why it is important logistically. I also understand the table and do not have suggestions regarding that.  
+
+Answer 2: We removed the section about the ID being the most important column. 
+
+
+
+Comment 3 Summary of a few comments: This section is really clear and describes data collection methods appropriately. Consider adding in any challenges when collecting data or elaborating on the reliability of the data source since issues regarding that were listed. You have a good description of how you collected the data and why the data is "good data." I think it was great that you noted how often the data is updated. Regarding considerations, I think it would be useful to do a little more analysis on whether the data (which is not actually from Airbnb) is accurate. To elaborate on this, you say that you still think that the data is accurate, but I think if you went into the verification process in a little more detail that would be useful. 
+
+Answer 3: We talked more about the reliability of the data source and how we cross checked some of the observations to ensure that the listings were consistent. We also added that the data source gets their data directly from Airbnb. 
+
+
+
+Comment 4: Instead of saying "These characteristics make it appropriate to answer the proposed business problem", you can be more explicit about what your problem is and how the characteristics are valuable to it. 
+
+Answer 4: We changed our data collection section to include more information about how the characteristics of the dataset fit into our business problem. 
+
+
+
+Comment 5 Summary of a few comments: I believe the data collection part clearly showed where the data is from. I think the part where you talk about usefulness of the data is really informative because the data is updated monthly. 
+
+Answer 5: This comment suggested no improvements. 
+
+
+
+Comment 6 Summary of a few comments: This is a really clear, non-technical description and I understand the process that was undergone. Consider adding in any challenges when preparing data and perhaps look into any extreme values to make sure 0's won't mess up further analysis. It seems like you did not do much cleaning here, hopefully that's because you've determined it isn't necessary. Also, consider adding any additional considerations that you have yet to mention above. Looking below, there are more cleaning steps you could mention here (at least at a high-level). 
+
+Answer 6: We changed this section to address more of the actual cleaning steps that were used to prepare the data and also mentioned some of the challenges and more justifications for why we took the steps we did. 
+
+
+
+Comment 7: Data preparation part clearly shows the way you manipulated the data. I believe that by removing duplicated data and missing values you ensured the data is ready for analysis. I like the way you showed manipulation with Excel, i believe showing screenshots made it easier to follow. 
+
+Answer 7: Comments suggested no improvements. 
+
+
+
+Comment 8: I understand the process and it is well commented throughout which makes it easy to follow. My only question is why you chose to display the number of N/A values in the table when you said previously you were not removing rows with blank values in preparation. Perhaps another output that can be compared to excel would be helpful as well. 
+
+Answer 8: We ended up removing the section to display the number of N/A values in the table. 
+
+
+
+Comment 9: Try using more active voice to be more direct—you changed the variables instead of "they were changed".  
+
+Answer 9: We changed our comments to include more active voice. 
+
+
+
+Comment 10: I understand how it worked, although a few in-code comments would be useful. It was useful that you wrapped the code so it didn't go off the page. I think it would also be useful to explain what data is being piped into which functions at times. There are also warnings that the code shows that I think should be explained. But overall, I think the code was clear and the explanations were good.  
+
+Answer 10: We changed this section to include more comments in the code to better help the reader understand what our R code was doing. We also changed it so that the warnings would be hidden. 
+
+
+
+Comment 11: This is a clear and easy-to-follow section, ample screenshots. Since this is supposed to be understandable by someone who has Excel knowledge, I am not sure screenshots for some simpler actions like value type changes may not require screenshots. Could make it a little cleaner, but what you have is plenty helpful. 
+
+Answer 11: We changed some of our screenshots to not include some of the more trivial things. 
+
+
+
+Comment 12: Creating a new paragraph at "Then," was not necessary. Consider breaking up the text with the screenshots so that the reader can follow along, and at least mention the figure number that corresponds to the step you are explaining. 
+Answer 12: We changed this section to not start the new paragraph and formatted the screenshots to be in the text instead of at the bottom. 
+
+
+
+Comment 13: I liked the explanation and screenshots of the specific process that was used. This made me able to understand it completely. Sometimes you say that you changed "certain columns" and I think it would not hurt to be specific instead. After your last set of images, there is no explanation, and I think an explanation would be useful there.  
+
+Answer 13: We changed it to clearly state which columns were changed and moved the images to inside of the text, since this was a formatting issue and not a lack of explanation issue. 
+
+
+
+Comment 14: 1. As this paper stands alone currently, there is no indication from this section that your data is for Airbnb or the location. Even combined, this section should make it clear that the data are appropriate and match the business problem. 2. Several tenses don't seem to match. 3. The data set names do not need to be used until the details sections. 4. As you find which variables are not useful in your analysis, they can be removed here. 5. Column titles usually have some capitalization. 
+
+Answer 14: We changed the tenses to match and be more grammatically correct. We also removed the dataset names from this section. We also capitalized the column titles. 
+
+
+
+Comment 15: One typo in this paragraph ("useful appropriate"). 
+
+Answer 15: We fixed this type to just be useful. 
+
+
+
+Comment 16: 1. Thorough job. 2. Consider replacing "that we wanted" with "relevant". 3. Missing output. 
+
+Answer 16: We replaced “that we wanted” with “relevant” and added in the output. 
+
+
+
+Comment 17: 1. Typo in Figure 2 name. 2. Some screenshots are hard to read. 
+
+Answer 17: We fixed the typos in the figure names and tried to make the screenshots easier to read. 
+
+
+## Deliverable 3
+
+Comment 1: You can provide a bit more explanation/introduction here as it is not accompanied by past deliverables. 1st graphic: this doesn't seem to provide insight beyond common knowledge. 2nd: How does this relate to the first graphic? Was there a large drop off between Dec and Jan? 3rd: line plots generally imply continuous data, consider using a different way to compare boroughs. Also, discussion of insights should be left for the next section. 
+
+Answer 1: We elaborated on our introduction to include more information about our business problem. For the first graphic, we ultimately changed it to be completely different as we realized this initial one we had was not as insightful. We then changed our line graph into a bar chart. 
+
+
+
+Comment 2: I think that some of the visualizations could be refined with color and themes a little more. In addition, some of the visualizations' text is small and is hard to see trends in some places. Small refinements should fix this pretty easily. 
+Answer 2: We added color and attempted to make the graphs appear larger.  
+
+
+
+Comment 3: Many of these insights are not beyond common knowledge. Also, the 5th graphic is mentioned but no real insights are explained. I think a little more elaboration would be useful on the individual patterns, but not so much that it makes it not concise. 
+
+Answer 3: We removed our fifth graphic as a result since we ourselves could not determine any further insights. 
+
+
+
+Comment 4: I believe Insight summary is very clear and not complicated. I like how you provided the summary of everything you believed was important for your future analysis. So overall I think you did a good job. The coding part was well commented and easy to follow. I do not have any suggestions as I believe this part was very well made. 
+
+Answer 4: Since no recommendation was made, we did not make any corresponding changes.  
+
+
+
+Comment 5: More complete description of Excel process should be included. 
+
+Answer 5: Since we removed this visualization, this part was also removed. 
+
+
+
+Comment 6: I understand the process in R and it is very efficiently done. I wonder if it is completely necessary to show each of the visualizations twice or not. In the last graph (the two-line graph), one of the labels in the key has an underscore, but this is only a small issue. Besides this, I don't see any problems.
+
+Answer 6: We improved the overall appearance of visualizations by adding titles and axis labels.  
+
+
+
+Comment 7: The first paragraph could be significantly shortened. 
+
+Answer 7: We shortened this paragraph to make it more succinct but still informational.  
+
+
+
+Comment 8: If the y-axis scale is difference in bookings, consider making the axis label more descriptive. 
+
+Answer 8: We changed this axis title to “Difference in Bookings”. 
+
+
+
+Comment 9: With so many values on the y-axis tick marks, becomes hard to quickly process the value. Consider reformatting these values. 
+
+Answer 9: We reformatted the values. 
+
+
+
+Comment 10: All visualizations should be captioned. 
+
+Answer 10 : We captioned our visualizations 
+
+
+
+Comment 11: How does knowing that the trend by month in 2020 increases impact your business problem? 
+
+Answer 11: It reassures that there may be a factor that is contributing to the increase in reservations.  
+
+
+
+Comment 12: This section should be non-technical (ie. bar graph, box plots).  
+
+Answer 12: We adjusted our visualizations. 
+
+
+
+Comment 13: It's almost impossible to read the words in the third visualization. The font needs to be larger. A title is needed. 
+
+Answer 13: We added a title and attempted to make the visualization appear larger. 
+
+
+
+Comment 14: There are points that are half on the box plot. Either cut it off at a value that does not slice a point in half or show the entire boxplot. 
+
+Answer 14: We changed the limits of the x axis so that none of the points were cut off. 
+
+
+
+Comment 15: The font used in the fourth visualization is also too small. 
+
+Answer 15: We attempted to make the visualization bigger overall. 
+
+
+
+Comment 16: Boxplots don't show averages unless you specifically add it. You should not draw an insight about a value that's not shown. 
+
+Answer 16: We removed our comment about averages and instead commented on other features of the boxplot. 
+
+
+
+Comment 17: The last visualization should have a title. 
+
+Answer 17: This visualization was removed. 
+
+
+
+Comment 18: How does the last visualization uniquely informs your business problem? Is there more to it than the expected result of decreased demand? 
+
+Answer 18: This visualization was ultimately removed.  
+
+
+
+Comment 19: The insight summary section should be non-technical and more succinct. It should be a summary instead of a detailed explanation. Consider showing potential relationships between number of bookings and price here.  
+
+Answer 19: We refined our summary section to make it more succinct and non-technical.  
+
+
+
+Comment 20: When introducing the second visualization, either make clear that you are moving to the next visualization or change the word first to something like next. 
+
+Answer 20 : We added a header that made it clear we were talking about the next visualization. 
+
+
+
+Comment 21: Note that the visualizations here should not be captioned. Make sure that all explanations are in full sentences. The size of the word visualizations here is much better. The words in this visualization and the one show in the body are different.  
+
+Answer 21: We removed captions and made sure the explanations were done in full sentences. 
+
+
+
+Comment 22: A full line is needed between paragraphs. Some of the reference list items need to also list the publication.  
+
+Answer 22: We added full lines in between paragraphs.  
+
+
+## Deliverable 4 
+
+Comment 1: You can be a bit more descriptive (provide a bit more context) in description of your goals. I'm not sure I understand your connection between words in listing descriptions being most prevalent and being "most important and effective". 
+
+Answer 1: We added more context and information about our business question, because without the other deliverables it was not exactly clear what our context was. We clarified that we are only looking at listing descriptions from successfully rented properties, which a lot of people commented on. Thus, the words that are mentioned the most frequently are representative of features that are probably most desirable to renters. 
+
+
+
+Comment 2 & 3: Both predictive analytics methods make sense for their project and are explained well. There are no questions left unanswered. I have no recommendations on improvements as this explanation covered all the bases. The descriptions were very well written. I liked how it wasn't too long, but still provided all the information needed. I was also able to understand what the predictive analytics would be used for in terms of answering the business problem. 
+
+Answer 2: & 3 We did not make changes as a result of this comment. Insinuated no changes were to be made for improvement.  
+
+
+
+Comment 4: Calling it a "giant list" isn't necessary (unprofessional). 
+
+Answer 4: We removed unprofessional language and adjusted terms such as giant. 
+
+
+
+Comment 5: The one improvement I would recommend would be to include the significance level that was chosen to assess the linear regression model. Other than that, the description made sense, and left no questions unanswered. 
+
+Answer 5: We ended up removing the linear regression model, as it did not fit the assumptions well enough to draw meaningful conclusions. Thus, this comment is void.
+
+
+
+Comment 6 & 7:  Based upon the visualizations provided, linear regression does not seem like the best method to analyze this data as many of the data is discrete aka. non-continuous. This makes analyzing it accurately difficult. Also, consider the other assumptions of linear regression. 
+
+Answer 6 & 7: From this extremely helpful feedback we decided to remove our linear regression model and instead do a decision tree, which didn’t rely on the same assumptions that are required of linear regression. We were trying to force our data to fit a linear regression model, when it was not correctly suited for our data. 
+
+
+
+Comment 8:  Improve visualizations by adding captions or titles to the graphs. This will provide more context as to what the graph is trying to display. 
+
+Answer 8: We added captions and titles to all our graphs, in order to provide more context and improve readability and professionalism. 
+
+
+
+Comment 9:  We mentioned that, “Most travelers are often business-related and are traveling alone and for short times." It was confusing because people weren’t sure if this was supported by our data or conjecture. 
+
+Answer 9: We removed this comment because it was unnecessary part of our analysis and caused confusion rather than adding anything meaningful.  
+
+
+
+Comment 10: It's certainly possible that certain words are negated, which is lost with single-word analysis. 
+
+Answer 10: To solve this problem, we added an additional bigram analysis to see if negated words were mentioned and so that we could get another look at the texts in order to pick up on trends we might not have seen in the unigram model. 
+
+
+
+Comment 11: Suggested moving some of the information into other deliverables.  
+
+Answer 11: We moved our response variable creation discussion into the data section and simplified this section to include less about the overall business question which is mentioned more thoroughly in earlier sections.  
+
+
+
+Comment 12: Since the majority of 2020 was during the pandemic, there may be more similarities in the reviews over these two years, unless you're looking at Jan-Mar for both 2020 and 2021. 
+
+Answer 12: We took this into account using term document frequency which was a comment mentioned earlier. Should take care of reoccurring words in 2020 then 2021.
+
+
+
+Comment 13: You don't need to teach the reader what the terms like confusion matrix mean. This section shouldn't mention R or its packages. Consider rounding the values in table 2. 4. 
+
+Answer 13: We removed the parts where we go into an extensive explanation of what a confusion matrix is, however kept a succinct explanation because in a professional setting many will be unfamiliar with this term and concept. Also removed mention of R packages, as it would be unprofessional and possibly confusing to the reader. Rounded the values in the table.  
+
+
+
+Comment 14: Consider using term and document frequency instead of bag of words to filter out those commonly used words. 
+
+Answer 14: We used term and inverse document frequency in order to assess which additional stop words to exclude for our analysis. Also added a brief explanation of what exactly this means for our analysis.  
+
+
+
+Comment 15: It's hard to compare the words using the graphics. Consider putting this information into a table with a column for 2020 and one for 2021 to more easily compare the words. 
+
+Answer 15: We reformatted the way we displayed this so that instead of being side by side bar graphs it is instead a table that has the top ten words and columns for 2020 and 2021. Improved readability and ability to draw insights.  
+
+
+
+Comment 16: The original and pruned trees aren't different because there was nothing to prune. Did you consider random forests? 
+
+Answer 16: We changed our decision tree to a random forest model.  

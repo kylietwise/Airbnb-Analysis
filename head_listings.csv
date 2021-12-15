@@ -1,0 +1,6 @@
+,id,name,host_id,host_since,host_location,host_is_superhost,host_total_listings_count,host_response_rate,host_verifications,host_has_profile_pic,neighbourhood,neighbourhood_group,property_type,room_type,accommodates,bedrooms,beds,price,minimum_nights,maximum_nights,year,reservation_rate
+1,2595,Skylit Midtown Castle,2845,9/9/08,"New York, New York, United States",FALSE,6,63,9,TRUE,Midtown,Manhattan,Apartment,Entire home/apt,1,0,1,225,7,1125,2020,high
+2,3831,Cozy Entire Floor of Brownstone,4869,12/7/08,"New York, New York, United States",FALSE,1,100,4,TRUE,Clinton Hill,Brooklyn,Guest suite,Entire home/apt,3,1,4,89,1,730,2020,moderate
+3,5099,Large Cozy 1 BR Apartment In Midtown East,7322,2/2/09,"New York, New York, United States",FALSE,1,NA,5,TRUE,Murray Hill,Manhattan,Apartment,Entire home/apt,2,1,1,200,3,21,2020,high
+4,5121,BlissArtsSpace!,7356,2/3/09,"New York, New York, United States",FALSE,1,100,8,TRUE,Bedford-Stuyvesant,Brooklyn,Apartment,Private room,2,1,1,60,29,730,2020,low
+5,5178,Large Furnished Room Near B'way ,8967,3/3/09,"New York, New York, United States",FALSE,1,94,4,TRUE,Hell's Kitchen,Manhattan,Apartment,Private room,2,1,1,79,2,14,2020,low

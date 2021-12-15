@@ -1,0 +1,300 @@
+---
+fontsize: 12pt
+geometry: margin=1in
+linkcolor: black
+urlcolor: black
+output: pdf_document
+fig_caption: yes
+bibliography: references.bib 
+nocite: '@*'
+header-includes:
+- \usepackage{setspace}
+- \onehalfspacing
+---
+
+```{r setup4, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, highlight=FALSE, message=FALSE, warning=FALSE)
+```
+
+```{r, echo = FALSE}
+# Library statements
+library(knitr)
+library(tidyverse)
+library(lubridate)
+library(janitor)
+library(corrr)
+library(tidymodels)
+library(GGally)
+library(modelr)
+library(car)
+library(tidytext)
+library(SnowballC)
+library(gridExtra)
+library(grid)
+library(yardstick)
+library(randomForest)
+rmse <- yardstick::rmse
+
+setwd("/Users/dazzellebagtas/Documents/STAT4220")
+listings.2020 <- read.csv("listings-2020.csv")
+calendar.2020 <- read.csv("calendar-2020.csv")
+
+##load in data for bag of words 
+data2020 <- read.csv("listings-2020.csv")
+data2021 <- read.csv("listings.csv")
+
+listings.2020.cleansed <- listings.2020 %>%
+  select(id, name, host_id, host_since, host_location, host_is_superhost, 
+         host_total_listings_count, host_verifications, host_has_profile_pic, 
+         neighbourhood_cleansed, neighbourhood_group_cleansed, property_type, 
+         room_type, accommodates, bedrooms, beds, price, minimum_nights, 
+         maximum_nights)
+
+listings.2020.cleansed <- listings.2020.cleansed %>%
+  mutate(host_is_superhost=host_is_superhost == "t") %>%
+  mutate(host_has_profile_pic=host_has_profile_pic == "t")
+
+listings.2020.cleansed <- listings.2020.cleansed %>% 
+  mutate(price=gsub("\\$", "", price)) %>%
+  mutate(price=as.numeric(gsub(",", "", price)))
+
+listings.2020.cleansed$host_verifications <- sapply(listings.2020.cleansed$host_verifications, function(x) {length(unlist(strsplit(x, ", ")))})
+
+calendar.2020.cleansed <- calendar.2020 %>%
+  mutate(price=gsub("\\$", "", price), 
+         adjusted_price=gsub("\\$", "", adjusted_price)) %>%
+  mutate(price=as.numeric(gsub(",", "", price)), 
+         adjusted_price=as.numeric(gsub(",", "", adjusted_price))) %>%
+  mutate(available=available == "t")%>%
+  rename(id=listing_id)
+
+booked<-calendar.2020.cleansed[calendar.2020.cleansed$available==FALSE,]
+
+tfcounts<-booked%>%
+  group_by(id)%>%
+  count()
+
+fulldata <- merge(listings.2020.cleansed, tfcounts, by="id")%>%
+  rename(days_reserved=n)%>%
+  drop_na()
+```
+
+# Predictive analytics
+For our predictive analytics section, we chose to use random forest modeling and text analysis. Through random forest modeling, our goal is to determine which various listing variables are important in determining the number of days a listing is reserved in a year in New York City. Our original data set contained over 20 different variables and descriptors that could be factors in booking an Airbnb. The resulting random forest model will tell us which quantitative and qualitative variables are most important/significant when reserving a property. We also performed a bag-of-words text analysis. Each listing in our data set had a paragraph description about the property. By creating a word analysis, we can find which words or phrases are most common. These results would signal which listing features are most important and effective when attracting guests to stay at a specific listing. 
+
+## Process
+For our random forest model, we first divided our Listings data set into three smaller data sets: one to construct a model to perform the analysis, one to estimate how well our model was constructed, and another to apply our model to data and validate the quality of our model. We then created the initial decision tree which included all our variables. After that, we iterated the model by removing variables that did not appear as important in prediction by considering how much the model accuracy decreased if they were removed.
+
+As for the text analysis portion of our predictive analysis, we used bag-of-words unigram and bigram modeling. Bag-of-words modeling is  concerned with occurrences of words or combination of words in a particular dataset. For our analysis, we were interested in looking at the description of Airbnb listings that were successfully rented in order to compare the most used words in 2020 listings descriptions versus 2021 listings descriptions. We first began by splitting up each word for each description and creating a list of these words. After compiling this list, we ensured that it was simplified, meaning it only contained the words we were interested in. To do this, we removed stop words, which are commonly used words such as “the,” “I,” “which,” etc., punctuation, and symbols from this list. We also removed words that had a low weight according to term frequency and inverse document frequency. This removed words that were common, but common across all descriptions, so that they did not give us uniquely interesting information about each year. We then took this simplified list and did a count of each word, to see which words were used the most in descriptions for each year. We followed a similar process for word pairs in order to create a bigram model that counts pairs of words that occur consecutively. We then put each of these side by side in a table to more easily see if and where the differences occurred. 
+
+## Assessments
+The two important assessments to consider for random forest analysis are the confusion matrix and the prediction accuracy of the model used to create the decision tree. From our confusion matrix we can see that our model correctly predicted 5,635 listings that were categorized as high, 106 listings as moderate, and 1,094 listings as low. It incorrectly predicted 2,766 listings; however, there were not an overwhelming amount of true low values that were were incorrectly predicted as high or true high values incorrectly predicted as low, which assures us that the model we have chosen predicts listings' reservation rates well.  
+
+```{r, echo=FALSE}
+set.seed(4224)
+
+##create response variable 
+fulldata <- fulldata%>%
+  mutate(value = if_else(days_reserved/365 >= 0.75, "high",
+                         if_else(days_reserved/365 >=0.50, "moderate", "low")))%>%
+  mutate(value = factor(value, levels = c("high","moderate","low")))%>%
+   drop_na()
+ 
+fulldata<-fulldata%>%
+  select(host_is_superhost, host_total_listings_count, host_verifications, host_has_profile_pic, room_type, accommodates, bedrooms, beds, price, minimum_nights, maximum_nights, value)
+
+
+##split up the data 
+listings.3div <- fulldata %>%
+  initial_split(prop = 0.6)
+
+listings.3div2 <- listings.3div %>%
+  testing() %>%
+  initial_split(prop = 0.5)
+
+listings.train <- training(listings.3div)
+listings.validate <- training(listings.3div2)
+listings.test <- testing(listings.3div2)
+
+
+RF.mod3 <- randomForest(value~. - host_has_profile_pic -bedrooms - beds, data=listings.train,mtry = 2, importance = TRUE)
+
+RF.add3test <- listings.test %>%
+  add_predictions(RF.mod3) %>%
+  rename(pred_value = pred) %>%
+  mutate(method = "RF.mod3")
+
+
+confmat3 <- RF.add3test %>%
+  conf_mat(truth = value, estimate = pred_value)
+
+RF.add3test %>%
+  metrics(truth = value, estimate = pred_value) %>%
+  filter(.metric == "accuracy")
+
+
+autoplot(confmat3, type="heatmap") + scale_fill_gradient(low="#D6EAF8",high = "#2E86C1") + theme(legend.position = "right")
+
+```
+
+The second important assessment of our decision tree model is the accuracy of our model. Our model has an accuracy of 71.2% which is fairly high and helps validate that our decision tree model is sufficient to use. [@ref10]
+
+```{r, echo=FALSE}
+accuracy <- matrix(0.712)
+colnames(accuracy) <-("Accuracy")
+rownames(accuracy) <-("Final Decision Tree Model")
+accuracy <- as.table(accuracy)
+kable(accuracy)
+```
+
+Random forest models make no assumptions about the distribution of the data. Thus, it is appropriate for our data to be used in such model and we did to investigate the data any farther. There also are no assumptions required to complete a successful bag-of-words modeling.
+
+For the bag-of-words modeling, we assessed which stop words to exclude from our model.  We first used common English stop words; however, it was also important to add additional stop words particular to our analysis. In order to do so we went in and removed words that had a low weight according to term frequency and inverse document frequency. This removed words that were common across all descriptions, as they did not give us uniquely interesting information about each year. For example, we decided to remove words such as bedroom, apartment, apt, etc. because we saw that these words appeared in most of the descriptions, thus they do not provide unique information about differences that exist from description to description. Unfortunately, even after removing stop words, we found many of the same words appeared in both the 2020 and 2021 datasets. This is not ideal because it makes it more difficult to answer our business question regarding how listings have changed from 2020 to 2021.   
+
+## Results 
+As a result of creating, pruning, and removing variables from our random forest model, we found that the most important variables in determining whether a listing has a high, moderate, or low reservation rate in a given year is the total number of listings a host has, the number of people it accommodates, the minimum nights required to stay, whether the host is a superhost, and price.
+
+
+```{r, echo=FALSE}
+Variable <- c("Host Total Listing Count", "Accommodates", "Minimum Nights", "Host is Superhost", "Price")
+Mean_Decrease_Accuracy <- c(203.59050 ,107.56583,103.74083 ,103.00184,97.95742)
+varimp <- data.frame(Variable, Mean_Decrease_Accuracy)
+```
+
+```{r, fig.cap="Variable Importance Within the Model" , echo=FALSE}
+kable(varimp)
+```
+
+The results from our bag-of-words text analysis are shown below. Some interesting results are that the top word in 2021 descriptions is space, which was mentioned more than 40,000 times whereas space is much less frequently mentioned in 2020. We can also see that words like restaurants and subway are mentioned frequently in 2020, however not included in the top 10 most frequently mentioned words in 2021. We will explore these results more thoroughly in our insight summary.
+
+```{r, echo=FALSE}
+name2020 <- data2020$name
+name2021 <- data2021$name
+summary2020 <- data2020$summary
+summary2021 <- data2021$summary
+
+listings.names2020 <- data2020 %>%
+  unnest_tokens(word, description) %>%
+  mutate(word = str_extract(word, "[0-9a-z']+"))
+
+
+listings.names2021 <- data2021 %>%
+  unnest_tokens(word, description) %>%
+  mutate(word = str_extract(word, "[0-9a-z']+"))
+
+check2020 <- listings.names2020$word
+check2021 <- listings.names2021$word
+
+listings.names2020 <- listings.names2020 %>%
+  anti_join(stop_words, by = "word")  %>%
+  mutate(word.stem = wordStem(word)) 
+
+listings.names2021 <- listings.names2021 %>%
+  anti_join(stop_words, by = "word")  %>%
+  mutate(word.stem = wordStem(word)) 
+
+word.count2020 <- listings.names2020 %>%
+  group_by(word) %>%
+  summarize(Count = n()) %>%
+  arrange(desc(Count))
+
+word.count2021 <- listings.names2021 %>%
+  group_by(word) %>%
+  summarize(Count = n()) %>%
+  arrange(desc(Count))
+
+new_stop_words <- tibble(word = c(NA, "bedroom","private","apartment","cozy","br", "bed", "living", "1","2","3","apt","studio","located"))
+
+listings.names2020 <- listings.names2020 %>%
+  anti_join(new_stop_words, by = "word")
+
+listings.names2021 <- listings.names2021 %>%
+  anti_join(new_stop_words, by = "word")
+
+
+new.word.count2020 <- listings.names2020 %>%
+  group_by(word) %>%
+  summarize(word.count = n()) %>%
+  arrange(desc(word.count))
+
+new.word.count2021 <- listings.names2021 %>%
+  group_by(word) %>%
+  summarize(word.count = n()) %>%
+  arrange(desc(word.count))
+
+# display of top 10 words in name 2020
+display2020 <- new.word.count2020 %>%
+  top_n(10, word.count)
+
+# display of top 10 words in name 2021
+display2021 <- new.word.count2021 %>%
+  top_n(10, word.count) 
+
+colnames(display2020) <- c("2020 Words","Frequency")
+colnames(display2021) <- c("2021 Words","Frequency")
+
+cbind(display2020, display2021) %>% kable(caption = "Top Description Words 2020 & 2021") 
+
+# extract bigrams from description
+bigrams2020 <- data2020[,c(1,8)] %>%
+  unnest_tokens(bigram, description, token = "ngrams", n = 2) %>%
+  mutate(bigram = str_extract(bigram, "[0-9a-z'\\s]+")) %>%
+  drop_na()
+
+bigrams2021 <- data2021[,c(1,6)] %>%
+  unnest_tokens(bigram, description, token = "ngrams", n = 2) %>%
+  mutate(bigram = str_extract(bigram, "[0-9a-z'\\s]+")) %>%
+  drop_na()
+
+# separate the words and remove stop words 
+bigrams2020 <- bigrams2020 %>%
+  separate(bigram, c("word1", "word2"), sep = " ") %>%
+  filter(!word1 %in% stop_words$word) %>%
+  filter(!word2 %in% stop_words$word) %>%
+  drop_na() %>%
+  unite(bigram, word1, word2, sep = " ") 
+
+bigrams2021 <- bigrams2021 %>%
+  separate(bigram, c("word1", "word2"), sep = " ") %>%
+  filter(!word1 %in% stop_words$word) %>%
+  filter(!word2 %in% stop_words$word) %>%
+  drop_na() %>%
+  unite(bigram, word1, word2, sep = " ") 
+
+# do a count of bigrams
+bigrams2020 <- bigrams2020 %>%
+  group_by(bigram) %>%
+  summarize(count = n()) %>%
+  arrange(desc(count))
+
+bigrams2021 <- bigrams2021 %>%
+  group_by(bigram) %>%
+  summarize(count = n()) %>%
+  arrange(desc(count))
+
+# display top 10 bigrams
+bigrams2020 %>%
+  top_n(11, count) %>%
+  mutate(bigram = reorder(bigram, count))
+
+bigrams2021 %>%
+  top_n(12, count) %>%
+  mutate(bigram = reorder(bigram, count)) 
+
+bigrams2020 <- bigrams2020[c(2,3,4,5,6,7,8,9,10,11),]
+bigrams2021 <- bigrams2021[c(3:12),]
+# rename columns
+colnames(bigrams2020) <- c("2020 Bigrams","Frequency")
+colnames(bigrams2021) <- c("2021 Bigrams","Frequency")
+#display in chart
+```
+
+```{r, fig.cap="Top Description Words 2020 vs 2021"}
+cbind(bigrams2020, bigrams2021) %>% kable(caption = "Top Description Words 2020 & 2021") 
+```
+
+## Insight summary
+From the random forest, we find that the total number of listings a host has, the number of people it accommodates, the minimum nights required to stay, whether the host is a superhost, and price are important variables in determining whether a listing has a high, moderate, or low reservation rate. From this list of variables, this reveals that customers may be looking for hosts who have expertise and experience in running and maintaining Airbnb rentals when considering which listing to rent since they are considering a host's total number of listings. This is reasonable, especially in the Covid pandemic era, where everyone is taking additional safety precautions.
+
+As for our unigram model, we saw that "space" was mentioned the most frequently in 2021 rented listings. This gives us some more insight into how the needs and wants of renters has changed as a result of the pandemic. It is reasonable that after almost a year of socially distancing, as a result of the pandemic, people prefer more spacious environments. It is interesting to see Airbnb listings descriptions reflect this cultural change and cater to the new preferences of renters. As for our bigram model, we saw that “walking distance” decreased in frequency mentioned from 2021 to 2020. However, the difference does not seem significant enough to draw meaningful conclusions. We can also see that “time square” which made an appearance in 2020 was not in the top ten bigrams for 2021. It is also interesting that restaurant and subway were mentioned frequently in 2020, whereas they do not appear in the top 10 words of 2021 listing descriptions. This also shows a possible result of the pandemic and people’s fears of populous places. Pre-pandemic, people felt comfortable going to restaurants and taking the subway; however, now many people view these activities as unsafe. Thus, it is not surprising to see Airbnb listings no longer mentioning as frequently restaurants and the subway. Ultimately, this text analysis gave us a better idea of how listings have adjusted because of the pandemic to better suit the preferences of renters. It also may give hosts a better idea of how to better market their listing to the changing needs of the market. 
+
