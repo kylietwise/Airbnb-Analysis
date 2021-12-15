@@ -1,0 +1,34 @@
+---
+fontsize: 12pt
+geometry: margin=1in
+linkcolor: black
+urlcolor: black
+output: pdf_document
+bibliography: references.bib 
+nocite: '@*'
+header-includes:
+- \usepackage{setspace}
+- \onehalfspacing
+- \usepackage{float}
+---
+
+```{r setup2, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, highlight=FALSE, message=FALSE, fig.align = "center", fig.pos = "H")
+```
+
+```{r, echo=FALSE, include=FALSE}
+library(tidyverse)
+library(lubridate)
+library(janitor)
+library(knitr)
+```
+
+## Data collection
+
+Our data sets come from Insideairbnb.com, which verifies, cleanses, analyzes, and aggregates publicly available information about various cities’ Airbnb’s listings directly from the Airbnb website.  Inside Airbnb describes themselves as an independent, non-commercial set of tools and data that allows people to explore how Airbnb is being used in cities around the world [@ref5]. They are not associated with or endorsed by Airbnb, but all their information comes directly from the Airbnb website, which helps support that the data are accurate and consistent with the true listings. Additionally, the data is updated monthly, which ensures that the data is up to date. While some hosts do not always keep their listings calendar updated, after cross-checking a few dates from our data with current listing on the Airbnb website, the data appears to remain consistent. All these factors ensure that the data is of high quality.  
+\newline
+The “listings” and “calendar” data provides both qualitative and quantitative information that contains insight about the listings ranging from physical characteristic, price, and details about the host. These characteristics make it appropriate and useful to answer the question of determining what the common characteristics are among listings that are struggling to get reservations or have closed down altogether. 
+
+## Data preparation
+
+Inside Airbnb has already prepared and cleaned much of the data; and consequently, we found that there was not as much for us to do in terms of cleaning. The first step of preparing the data consists of removing categories that are not useful for analysis within the “listings” datasets. The original data set has 104 variables and is reduced to 21 variables after removing the unhelpful columns. Many columns that are removed are ones that included links to profile pictures, personal name information, and redundant, less helpful location identifiers such as latitude and longitude points, since these do not provide any useful information. Next, the data is then checked to ensure there are no duplicate listings. After doing so, value types are then converted into their appropriate form such as numeric, currency, or percentage. Additionally, certain column names will be renamed in order to increase the clarity of the data. Cells with blank or missing values are not removed because they may give insight as to what helps boost a listing’s number of reservations among customers. These data preparation steps ensure that our data is even more useful in determining what the common characteristics are among listings that are struggling to get reservations or have closed out altogether and to further confirm that the data is of high quality. For our decision tree model, we first created a response variable which indicated whether a listing had a high, moderate, or low reservation rate. A listing had a high reservation rate if it was reserved for 75% or more of the year, moderate it if was reserved between 50%-74% of the year, and low otherwise.

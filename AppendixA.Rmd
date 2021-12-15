@@ -1,0 +1,54 @@
+---
+fontsize: 12pt
+geometry: margin=1in
+linkcolor: black
+urlcolor: black
+output: pdf_document
+header-includes:
+- \usepackage{setspace}
+- \onehalfspacing
+---
+
+```{r setupA, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, highlight=FALSE, message=FALSE)
+```
+
+```{r}
+library(tidyverse)
+library(lubridate)
+library(janitor)
+library(knitr)
+```
+
+# Appendix A: Data {-}
+
+```{r, echo=FALSE}
+table.listings <- read.csv("head_listings.csv")[,2:22]
+
+table.listings %>%
+  select(id : host_location) %>%
+  kable(col.names = c("id", "name", "host id", "host since", "host location"), caption = "Listings Dataset Split into 4 Tables")
+table.listings %>%
+  select(id, host_is_superhost : host_has_profile_pic) %>%
+  kable(col.names = c("id", "is superhost", "host total listings", "host response rate", 
+                      "host verifications", "has profile pic"))
+```
+\newline
+```{r, echo=FALSE}
+table.listings %>%
+  select(id, neighbourhood : accommodates) %>%
+  kable(col.names = c("id", "neighborhood", "neighborhood group", "property type", "room type", "accommodates"))
+
+table.listings %>%
+  select(id, bedrooms : year) %>%
+  kable(col.names = c("id", "bedrooms", "beds", "price", "minimum nights", 
+                      "maximum nights", "year"))
+```
+\newline
+```{r, echo=FALSE}
+table.calendar <- read.csv("head_calendar.csv")[,c(2:5,7:8)]
+
+table.calendar %>%
+  kable(col.names = c("listing id", "date", "available", "price", "minimum nights", "maximum nights"), caption = "Calendar Dataset") 
+```
+
